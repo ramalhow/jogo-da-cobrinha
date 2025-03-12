@@ -1,17 +1,32 @@
+// constantes
 #define SCALE 3
 #define WIDTH (4 * SCALE)
 #define HEIGHT (3 * SCALE)
+#define W 119
+#define A 97
+#define S 115
+#define D 100
+#define SPACE 32
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <conio.h>
+#include <string.h>
 
 // estruturas do jogo
-typedef struct { int x, y; } vec2;
+typedef struct vec2 { 
+    int x, y; 
+} vec2;
 
+typedef struct node {
+    vec2 pos;
+    struct node* next;
+} node;
 
 // váriaveis globais
-char map[9][12] = {
+char screen[HEIGHT][WIDTH];
+
+char map[HEIGHT][WIDTH] = {
     "############",
     "#          #",
     "#          #",
@@ -23,8 +38,8 @@ char map[9][12] = {
     "############"
 };
 
-char screen[9][12];
 vec2 food;
+node* head = NULL;
 
 // funções
 void StartMenu() {
@@ -36,7 +51,22 @@ void StartMenu() {
 }
 
 void ShowInstructions() {
-
+    while (1)
+    {
+        system("cls");
+        printf("Instrucoes: \n");
+        printf("\tW - pra cima\n");
+        printf("\tA - pra esquerda\n");
+        printf("\tS - pra baixo\n");
+        printf("\tD - pra direita\n");
+        printf("Objetivo: Comer o maior numero de frutinhas (@) sem bater nas paredes (e em si mesmo!)\n");
+        printf("\nPressione espaco para comecar o jogo...");
+        if (getch() == SPACE) {
+            break;
+        }
+    }
+    
+    system("cls");
 }
 
 int RandomInMap(int min, int max) {
@@ -56,23 +86,51 @@ vec2 RandomCoordInMap() {
     return v;
 }
 
+void DrawMap() {
+    memcpy(screen, map, sizeof(HEIGHT * WIDTH));
+
+    strcpy(&screen[food.x][food.y],"@");
+
+    DrawSnake();
+
+    // TODO: printar
+    for (size_t i = 0; i < ; i++)
+    {
+        printf("%s", );
+    }
+    
+}
+
+void DrawSnake() {
+
+    // draw head
+    strcpy(&screen[head->pos.x][head->pos.y],"O");
+
+    node* aux = head->next;
+    while (aux)
+    {
+        strcpy(&screen[aux->pos.x][aux->pos.y], "o");
+        aux = aux->next;
+    } 
+}
+
 int main() {
 
     StartMenu();
 
     ShowInstructions();
+    
+    head = (node*)malloc(sizeof(node));
+    head->next = NULL;
 
     food = RandomCoordInMap();
     head->pos = RandomCoordInMap();
 
-    SpawnInMap(food);
-    SpawnInMap(head->pos);
-
-    int alive = 1;
-
     DrawMap();
 
     /*
+    int alive = 1;
+    
     while(1) {
         ClearScreen();
 
@@ -90,6 +148,7 @@ int main() {
         if ( CheckApple() ) {
             ExtendSnake();
             food = RandomCoordInMap();
+            SpawnFood();
         };
 
         DrawMap();
