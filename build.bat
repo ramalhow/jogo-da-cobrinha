@@ -1,0 +1,1 @@
+clang main.c -Wall -Wextra -Wconversion -Wdouble-promotion -Wno-unused-parameter -Wno-unused-function -Wno-sign-conversion -o main
