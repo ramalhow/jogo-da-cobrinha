@@ -177,7 +177,7 @@ void DrawInfo()
 };
 
 // player functions
-void MovePlayer(int keyPressed)
+uint8_t MovePlayer(int keyPressed)
 {
     vec2 new_pos = head->pos;
     switch (keyPressed)
@@ -199,8 +199,22 @@ void MovePlayer(int keyPressed)
         break;
     }
 
-    //TODO: fazer a extensão da cobrinha funcionar
-    
+    // update all snake nodes
+    node *aux = head;
+    while (aux)
+    {
+        vec2 curr = aux->pos;
+        aux->pos = new_pos;
+        new_pos = curr;
+        aux = aux->next;
+    }
+
+    // self-collision check
+    uint8_t hit = 0;
+    if (head->next) {
+        hit = (head->pos.x == head->next->pos.x) && (head->pos.y == head->next->pos.y);
+    }
+    return !hit;
 }
 
 void ExtendSnake()
@@ -214,16 +228,20 @@ void ExtendSnake()
     const vec2 rel = end->pos;
     new_node->pos = rel;
 
-    if( map[rel.y][rel.x+1] == ' ') { // right
+    if (map[rel.y][rel.x + 1] == ' ')
+    { // right
         new_node->pos.x += 1;
-
-    } else if( map[rel.y+1][rel.x] == ' ') { // down
+    }
+    else if (map[rel.y + 1][rel.x] == ' ')
+    { // down
         new_node->pos.y += 1;
-
-    } else if( map[rel.y-1][rel.x] == ' ') { // up
+    }
+    else if (map[rel.y - 1][rel.x] == ' ')
+    { // up
         new_node->pos.y -= 1;
-
-    } else if( map[rel.y][rel.x-1] == ' ') { // left
+    }
+    else if (map[rel.y][rel.x - 1] == ' ')
+    { // left
         new_node->pos.x -= 1;
     }
 
@@ -237,16 +255,18 @@ uint8_t CheckCollision()
     uint8_t hitWall = 0;
 
     // wall check
-    hitWall = (head->pos.x == 0 || head->pos.x == WIDTH - 1);
-    hitWall = (head->pos.y == 0 || head->pos.y == HEIGHT - 1);
+    hitWall = map[head->pos.y][head->pos.x] == '#';
 
     // fruit check
-    gotFruit = (head->pos.x == food.x) && (head->pos.y == food.y);
+    gotFruit = (head->pos.y == food.y) && (head->pos.x == food.x);
 
     if (gotFruit)
     {
-        // ExtendSnake();
-        food = RandomCoordInMap();
+        ExtendSnake();
+        for (size_t i = 0; i < 100; i++)
+        {
+            food = RandomCoordInMap();
+        }
         gotFruit = 0;
         snake_size += 1;
     }
@@ -261,7 +281,10 @@ int main()
 
     // Generating the map
     CreateMap();
-    food = RandomCoordInMap();
+    for (size_t i = 0; i < 100; i++)
+    {
+        food = RandomCoordInMap();
+    }
 
     // creating the player
     head = (node *)malloc(sizeof(node));
@@ -275,15 +298,12 @@ int main()
 
     while (1)
     {
-
+        fflush(stdout);
         int command = getch();
         if (command == SPACE)
             break;
 
-        MovePlayer(command);
-
-        alive = CheckCollision();
-
+        alive = MovePlayer(command) && CheckCollision();
         if (!alive)
         {
             ShowEndScreen();
@@ -292,8 +312,6 @@ int main()
 
         DrawMap();
         DrawInfo();
-
-        fflush(stdout);
     }
     return 0;
 }
